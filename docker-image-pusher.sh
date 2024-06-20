@@ -131,9 +131,10 @@ _IMAGE_SYNC_TO_REGISTRY_CHECK() {
     __SAY__ debug "镜像同步配置状态: ${__HUB_IMAGE_TAG__} -> ${__NEW_IMAGE_TAG__}"
 
     __SAY__ info "pull 待同步镜像: ${__HUB_IMAGE_TAG__}"
+
     docker pull ${__HUB_IMAGE_TAG__} || {
-        __SAY__ error "拉取原始镜像失败: ${__HUB_IMAGE_TAG__}"
-        exit $LINENO
+        __SAY__ error "镜像拉取失败，跳过同步 ${__HUB_IMAGE_TAG__}"
+        return 0
     }
 
     if [ "${__FLAG__}" == "1" ]; then
