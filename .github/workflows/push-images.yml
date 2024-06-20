@@ -1,0 +1,44 @@
+name: Push Docker Images to Multiple Registries
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+  schedule:
+    - cron: '0 2 */7 * *'  # 每天凌晨2点执行
+
+env:
+  LOG_LEVEL:  "${{ vars.LOG_LEVEL }}"
+  PRIVATE_REGISTRY_URLS: "${{ secrets.PRIVATE_REGISTRY_URLS }}"
+  PRIVATE_REGISTRY_USERNAME: "${{ secrets.PRIVATE_REGISTRY_USERNAME }}"
+  PRIVATE_REGISTRY_PASSWORD:  "${{ secrets.PRIVATE_REGISTRY_PASSWORD }}"
+  DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
+  DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+
+jobs:
+  push-to-registries:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Maximize build space
+      uses: easimon/maximize-build-space@master
+      with:
+        root-reserve-mb: 2048
+        swap-size-mb: 128
+        remove-dotnet: 'true'
+        remove-haskell: 'true'
+        # remove-android: 'true'
+        # remove-codeql: 'true'
+        
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Image Sync To Registry
+      id: read-images
+      run: |
+        bash docker-image-pusher.sh
+
+    # # - name: Clean up Docker
+    # #   run: |
+    # #     echo "Cleaning up Docker..."
+    # #     docker system prune -f --all
+    # #     docker rmi $(docker images -q) || true
