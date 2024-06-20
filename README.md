@@ -37,18 +37,18 @@
         IMAGES_FILE                     指定同步的配置文件, 默认 /home/cxd/Projects/tmpdir/docker-image-pusher/images.ini
         HUB_IMAGE_TAG                   指定同步的源镜像
         NEW_IMAGE_TAG                   指定同步的目标镜像(需要设置: PRIVATE_REGISTRY_URLS)
-        PRIVATE_REGISTRY_URLS           指定私有镜像仓库地址, 多个地址用逗号分隔, 默认 ''
-        PRIVATE_REGISTRY_USERNAME       指定私有镜像仓库的登陆用户名, 多个用逗号分割，需要遵循 PRIVATE_REGISTRY_URLS 变量配置顺序
-        PRIVATE_REGISTRY_PASSWORD       指定私有镜像仓库的登陆密码, 多个用逗号分割，需要遵循 PRIVATE_REGISTRY_URLS 变量配置顺序
+        PRIVATE_REGISTRY_URLS           指定私有镜像仓库地址, 多个地址用 '|' 分隔, 默认 ''
+        PRIVATE_REGISTRY_USERNAME       指定私有镜像仓库的登陆用户名, 多个用 '|' 分割，需要遵循 PRIVATE_REGISTRY_URLS 变量配置顺序
+        PRIVATE_REGISTRY_PASSWORD       指定私有镜像仓库的登陆密码, 多个用 '|' 分割，需要遵循 PRIVATE_REGISTRY_URLS 变量配置顺序
         DOCKER_USERNAME                 指定 DockerHub 登陆用户名, 非必填, 默认 ''
         DOCKER_PASSWORD                 指定 DockerHub 登陆密码, 非必填, 默认 ''
     ```
 
 ## 2. 使用`Github Actions` 自动同步  
 - 在项目 `Settings` -> `Secret and variables` -> `Actions` -> `New Repository secret`中，添加以下参数:  
-    - `PRIVATE_REGISTRY_URLS`: 指定私有镜像仓库地址, 多个地址用逗号分隔. (注: 需通过`secrets`指定)  
-    - `PRIVATE_REGISTRY_USERNAME`: 指定私有镜像仓库的登陆用户名, 多个用逗号分割，需要遵循 `PRIVATE_REGISTRY_URLS` 变量配置顺序 (注: 需通过`secrets`指定)    
-    - `PRIVATE_REGISTRY_PASSWORD`: 指定私有镜像仓库的登陆密码, 多个用逗号分割，需要遵循 `PRIVATE_REGISTRY_URLS` 变量配置顺序 (注: 需通过`secrets`指定)    
+    - `PRIVATE_REGISTRY_URLS`: 指定私有镜像仓库地址, 多个地址用 '|' 分隔. (注: 需通过`secrets`指定)  
+    - `PRIVATE_REGISTRY_USERNAME`: 指定私有镜像仓库的登陆用户名, 多个用 '|' 分割，需要遵循 `PRIVATE_REGISTRY_URLS` 变量配置顺序 (注: 需通过`secrets`指定)    
+    - `PRIVATE_REGISTRY_PASSWORD`: 指定私有镜像仓库的登陆密码, 多个用 '|' 分割，需要遵循 `PRIVATE_REGISTRY_URLS` 变量配置顺序 (注: 需通过`secrets`指定)    
     - 其他变量: `LOG_LEVEL` 指定日志级别. (注: 通过 `variables`指定)
 - 修改 `images.ini` 配置文件，然后提交到`Github`， `Github Actions` 将会自动执行同步  
 
