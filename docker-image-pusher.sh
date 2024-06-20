@@ -31,6 +31,8 @@ PRIVATE_REGISTRY_USERNAME="${PRIVATE_REGISTRY_USERNAME:-}"
 PRIVATE_REGISTRY_PASSWORD="${PRIVATE_REGISTRY_PASSWORD:-}"
 
 
+CLOUD_REGISTRY_DOMAINS="aliyuncs.com|tencentyun.com|myhuaweicloud.com"
+
 ## __SAY__ [info|success|error|warn|debug] <message>
 ## __SAY__ [info|success|error|warn|debug] bg <message>
 __SAY__() {
@@ -94,9 +96,9 @@ _DOCKERHUB_LOGIN() {
 _REGISTRY_LOGIN(){
     # PRIVATE_REGISTRY_URLS 是必需配置的
     if [ "${PRIVATE_REGISTRY_URLS}x" != "x" ]; then
-        IFS=',' read -ra PRIVATE_REGISTRY_URLS_ARR <<<"${PRIVATE_REGISTRY_URLS}"
-        IFS=',' read -ra PRIVATE_REGISTRY_USERNAME_ARR <<<"${PRIVATE_REGISTRY_USERNAME}"
-        IFS=',' read -ra PRIVATE_REGISTRY_PASSWORD_ARR <<<"${PRIVATE_REGISTRY_PASSWORD}"
+        IFS='|' read -ra PRIVATE_REGISTRY_URLS_ARR <<<"${PRIVATE_REGISTRY_URLS}"
+        IFS='|' read -ra PRIVATE_REGISTRY_USERNAME_ARR <<<"${PRIVATE_REGISTRY_USERNAME}"
+        IFS='|' read -ra PRIVATE_REGISTRY_PASSWORD_ARR <<<"${PRIVATE_REGISTRY_PASSWORD}"
         for ((i=0; i<${#PRIVATE_REGISTRY_URLS_ARR[@]}; i++)); do
             __PRIVATE_REGISTRY_URL__="${PRIVATE_REGISTRY_URLS_ARR[$i]}"
             __PRIVATE_REGISTRY_USERNAME__="${PRIVATE_REGISTRY_USERNAME_ARR[$i]}"
@@ -142,10 +144,15 @@ _IMAGE_SYNC_TO_REGISTRY_CHECK() {
     else
         # 镜像同步
         if [ "${PRIVATE_REGISTRY_URLS}x" != "x" ]; then
-            IFS=',' read -ra PRIVATE_REGISTRY_URLS_ARR <<<"${PRIVATE_REGISTRY_URLS}"
+            IFS='|' read -ra PRIVATE_REGISTRY_URLS_ARR <<<"${PRIVATE_REGISTRY_URLS}"
             for __PRIVATE_REGISTRY_URL__ in ${PRIVATE_REGISTRY_URLS_ARR[@]}; do
                 ___NEW_IMAGE_TAG___="${__PRIVATE_REGISTRY_URL__#*://}/${__NEW_IMAGE_TAG__}"
 
+                if echo "${__PRIVATE_REGISTRY_URL__}" | grep -Eq "${CLOUD_REGISTRY_DOMAINS}" ; then 
+                    __SAY__ warn "多仓库同步状态下，不支持同步到云仓库固定命名空间, 跳过 ${___NEW_IMAGE_TAG___}"
+                    continue 
+                fi
+                
                 __SAY__ debug "镜像同步: ${__HUB_IMAGE_TAG__} -> ${___NEW_IMAGE_TAG___}"
                 
                 docker tag ${__HUB_IMAGE_TAG__} ${___NEW_IMAGE_TAG___}
@@ -213,9 +220,9 @@ __HELP__() {
     echo "      IMAGES_FILE                     指定同步的配置文件, 默认 ${IMAGES_FILE}"
     echo "      HUB_IMAGE_TAG                   指定同步的源镜像"
     echo "      NEW_IMAGE_TAG                   指定同步的目标镜像(需要设置: PRIVATE_REGISTRY_URLS)"
-    echo "      PRIVATE_REGISTRY_URLS           指定私有镜像仓库地址, 多个地址用逗号分隔, 默认 ${PRIVATE_REGISTRY_URLS:-''}"
-    echo "      PRIVATE_REGISTRY_USERNAME       指定私有镜像仓库的登陆用户名, 多个用逗号分割，需要遵循 PRIVATE_REGISTRY_URLS 变量配置顺序"
-    echo "      PRIVATE_REGISTRY_PASSWORD       指定私有镜像仓库的登陆密码, 多个用逗号分割，需要遵循 PRIVATE_REGISTRY_URLS 变量配置顺序"
+    echo "      PRIVATE_REGISTRY_URLS           指定私有镜像仓库地址, 多个地址用 '|' 分隔, 默认 ${PRIVATE_REGISTRY_URLS:-''}"
+    echo "      PRIVATE_REGISTRY_USERNAME       指定私有镜像仓库的登陆用户名, 多个用 '|' 分割，需要遵循 PRIVATE_REGISTRY_URLS 变量配置顺序"
+    echo "      PRIVATE_REGISTRY_PASSWORD       指定私有镜像仓库的登陆密码, 多个用 '|' 分割，需要遵循 PRIVATE_REGISTRY_URLS 变量配置顺序"
     echo "      DOCKER_USERNAME                 指定 DockerHub 登陆用户名, 非必填, 默认 ${DOCKER_USERNAME:-''}"
     echo "      DOCKER_PASSWORD                 指定 DockerHub 登陆密码, 非必填, 默认 ${DOCKER_PASSWORD:-''}"
 }
