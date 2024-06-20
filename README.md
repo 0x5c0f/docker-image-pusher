@@ -51,3 +51,7 @@
     - `PRIVATE_REGISTRY_PASSWORD`: 指定私有镜像仓库的登陆密码, 多个用逗号分割，需要遵循 `PRIVATE_REGISTRY_URLS` 变量配置顺序 (注: 需通过`secrets`指定)    
     - 其他变量: `LOG_LEVEL` 指定日志级别. (注: 通过 `variables`指定)
 - 修改 `images.ini` 配置文件，然后提交到`Github`， `Github Actions` 将会自动执行同步  
+
+# 已知问题
+- 不知道为什么，`Github Actions` 运行时推送云仓库推不过去，暂不清楚具体原因是什么, 自建服务器是没有问题的  
+- 未指定推送目标的时候，云仓库是不支持的固定命名空间推送的, 自建的 `Registry` 是不受影响  
