@@ -5,7 +5,7 @@ on:
   push:
     branches: [ main ]
   schedule:
-    - cron: '0 2 */7 * *'  # 每天凌晨2点执行
+    - cron: '0 2 */7 * *'
 
 env:
   LOG_LEVEL:  "${{ vars.LOG_LEVEL }}"
