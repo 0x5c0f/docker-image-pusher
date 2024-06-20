@@ -267,9 +267,9 @@ for var in "${ENV_ARR[@]}"; do
     declare -g "${VAR_ARR[0]}=${VAR_ARR[1]}"
 done
 
-if [ -f "${BASEDIR_BACKUP}/.env" ]; then
-    __SAY__ info "检查到环境变量配置文件(${BASEDIR_BACKUP}/.env),开始加载..."
-    soruce ${BASEDIR_BACKUP}/.env
+if [ -f "${BASEDIR}/.env" ]; then
+    __SAY__ info "检查到环境变量配置文件(${BASEDIR}/.env),开始加载..."
+    source ${BASEDIR}/.env
 fi
 
 # PRIVATE_REGISTRY_URLS=""
