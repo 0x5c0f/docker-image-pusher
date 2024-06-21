@@ -20,7 +20,7 @@
             源镜像=目标镜像
         配置文件示例:
             nginx=base/nginx
-            docker.io/nginx=hub.example.com/base/nginx
+            docker.io/nginx=-hub.example.com/base/nginx
     Source_tag:
         源镜像, 支持所有不登陆就可以拉取的镜像
             - nginx
@@ -28,7 +28,6 @@
     Target_tag:
         目标镜像
             - base/nginx
-            - hub.example.com/base/nginx
             - '-hub.example.com/base/nginx' (指定仓库同步)
     Environment:
         所有支持的参数，均可以通过系统环境变量进行传递。(优先级: 参数指定 > -e 指定 > 系统环境变量 > 配置文件指定)
