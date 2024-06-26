@@ -141,7 +141,10 @@ _IMAGE_SYNC_TO_REGISTRY_CHECK() {
         # 指定域名同步
         __SAY__ info "镜像同步: ${__HUB_IMAGE_TAG__} -> ${__NEW_IMAGE_TAG__}"
         docker tag ${__HUB_IMAGE_TAG__} ${__NEW_IMAGE_TAG__}
-        docker push ${__NEW_IMAGE_TAG__}
+        docker push ${__NEW_IMAGE_TAG__} || {
+            __SAY__ error "镜像同步失败 ${__NEW_IMAGE_TAG__}"
+            return 0
+        }
     else
         # 镜像同步
         if [ "${PRIVATE_REGISTRY_URLS}x" != "x" ]; then
@@ -157,7 +160,10 @@ _IMAGE_SYNC_TO_REGISTRY_CHECK() {
                 __SAY__ debug "镜像同步: ${__HUB_IMAGE_TAG__} -> ${___NEW_IMAGE_TAG___}"
                 
                 docker tag ${__HUB_IMAGE_TAG__} ${___NEW_IMAGE_TAG___}
-                docker push ${___NEW_IMAGE_TAG___}
+                docker push ${___NEW_IMAGE_TAG___} || {
+                    __SAY__ error "镜像同步失败 ${___NEW_IMAGE_TAG___}"
+                    return 0
+                }
             done
         else
             __SAY__ error "未配置私有镜像仓库地址，请检查 !!!"
