@@ -23,6 +23,8 @@ NEW_IMAGE_TAG="${NEW_IMAGE_TAG:-}"
 
 IMAGES_FILE="${BASEDIR}/images.ini"
 
+IMAGES_CLEAN_FLAG="${IMAGES_CLEAN_FLAG:-1}"
+
 DOCKER_USERNAME="${DOCKER_USERNAME:-}"
 DOCKER_PASSWORD="${DOCKER_PASSWORD:-}"
 
@@ -30,11 +32,11 @@ PRIVATE_REGISTRY_URLS="${PRIVATE_REGISTRY_URLS:-}"
 PRIVATE_REGISTRY_USERNAME="${PRIVATE_REGISTRY_USERNAME:-}"
 PRIVATE_REGISTRY_PASSWORD="${PRIVATE_REGISTRY_PASSWORD:-}"
 
-
 CLOUD_REGISTRY_DOMAINS="aliyuncs.com|tencentyun.com|myhuaweicloud.com"
 
 ## __SAY__ [info|success|error|warn|debug] <message>
 ## __SAY__ [info|success|error|warn|debug] bg <message>
+
 __SAY__() {
     local -r ENDCOLOR="\033[0m"
     local -r INFOCOLOR="\033[1;34m"    # info color
@@ -43,11 +45,8 @@ __SAY__() {
     local -r WARNCOLOR="\033[0;33m"    # warning color
     local -r DEBUGCOLOR="\033[0;35m"   # debug color
     
-    # 判断下传入的第一个参数是不是数字，防止提取变量时候出错
-    expr "${1:0:1}" "+" 0 >/dev/null 2>&1 && {
-        LOGTYPE="INFOCOLOR"
-    } || {
-
+    # 判断下第一个传入的是否是信息等级标记
+    if [ -z "${1##[a-zA-Z]*}" ]; then 
         if [ "${LOG_LEVEL^^}" == "INFO" ]; then
             if [ "${1^^}" == "DEBUG" -o "${1^^}" == "ERROR" -o "${1^^}" == "WARN" ]; then
                 return 0
@@ -56,12 +55,12 @@ __SAY__() {
             if [ "${1^^}" == "DEBUG" -o "${1^^}" == "ERROR" ]; then
                 return 0
             fi
+        elif [ "${LOG_LEVEL^^}" == "DEBUG" ]; then
+            true
         elif [ "${LOG_LEVEL^^}" == "ERROR" ]; then
             if [ "${1^^}" == "DEBUG" ]; then
                 return 0
             fi
-        elif [ "${LOG_LEVEL^^}" == "DEBUG" ]; then
-            true
         else
             if [ "${1^^}" == "DEBUG" -o "${1^^}" == "ERROR" -o "${1^^}" == "WARN" ]; then
                 return 0
@@ -75,7 +74,9 @@ __SAY__() {
         else
             shift
         fi
-    }
+    else
+        LOGTYPE="INFOCOLOR"
+    fi 
 
     MESSAGE="$@"
     if [ "${1}" == "bg" ]; then
@@ -85,6 +86,7 @@ __SAY__() {
 
     echo -e "[$(date '+%Y-%m-%d_%H:%M:%S')] [${!LOGTYPE}${LOGTYPE%%COLOR}${ENDCOLOR}] ${MESSAGE}"
 }
+
 
 _DOCKERHUB_LOGIN() {
     if [ "${DOCKER_USERNAME}x" != "x" -a "${DOCKER_PASSWORD}x" != "x" ]; then
@@ -171,6 +173,11 @@ _IMAGE_SYNC_TO_REGISTRY_CHECK() {
         fi
     fi
 
+    if [ "${IMAGES_CLEAN_FLAG}" == "1" ]; then
+        __SAY__ info "清理缓存镜像: [${__HUB_IMAGE_TAG__}] [${__NEW_IMAGE_TAG__}]"
+        docker rmi ${__HUB_IMAGE_TAG__} > /dev/null 2>&1
+        docker rmi ${__NEW_IMAGE_TAG__} > /dev/null 2>&1
+    fi
 }
 
 __PCHECK__(){
@@ -226,6 +233,7 @@ __HELP__() {
     echo "      IMAGES_FILE                     指定同步的配置文件, 默认 ${IMAGES_FILE}"
     echo "      HUB_IMAGE_TAG                   指定同步的源镜像"
     echo "      NEW_IMAGE_TAG                   指定同步的目标镜像(需要设置: PRIVATE_REGISTRY_URLS)"
+    echo "      IMAGES_CLEAN_FLAG               是否清理镜像, 默认 ${IMAGES_CLEAN_FLAG} (1: 清理, 0: 不清理)"
     echo "      PRIVATE_REGISTRY_URLS           指定私有镜像仓库地址, 多个地址用 '|' 分隔, 默认 ${PRIVATE_REGISTRY_URLS:-''}"
     echo "      PRIVATE_REGISTRY_USERNAME       指定私有镜像仓库的登陆用户名, 多个用 '|' 分割，需要遵循 PRIVATE_REGISTRY_URLS 变量配置顺序"
     echo "      PRIVATE_REGISTRY_PASSWORD       指定私有镜像仓库的登陆密码, 多个用 '|' 分割，需要遵循 PRIVATE_REGISTRY_URLS 变量配置顺序"
