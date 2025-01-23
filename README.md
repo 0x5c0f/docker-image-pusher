@@ -10,7 +10,7 @@
 
     Options:
     -h, --help                          展示帮助文档并退出.
-    -c images_file                      指定同步的配置文件, 默认 /home/cxd/Projects/tmpdir/docker-image-pusher/images.ini.
+    -c images_file                      指定同步的配置文件, 默认 /tmp/tmp.Uw8RfSR2XR/docker-image-pusher/images.ini.
     -s source_tag                       单镜像同步时，指定同步的源镜像
     -t target_tag                       单镜像同步时，指定同步的目标镜像
     -e environment                      指定环境变量, 用以覆盖内置变量(key=value,key=value)
@@ -33,9 +33,10 @@
         所有支持的参数，均可以通过系统环境变量进行传递。(优先级: 参数指定 > -e 指定 > 系统环境变量 > 配置文件指定)
     系统变量:
         LOG_LEVEL                       日志级别, 默认 INFO(INFO/WARN/DEBUG/ERROR)
-        IMAGES_FILE                     指定同步的配置文件, 默认 /home/cxd/Projects/tmpdir/docker-image-pusher/images.ini
+        IMAGES_FILE                     指定同步的配置文件, 默认 /tmp/tmp.Uw8RfSR2XR/docker-image-pusher/images.ini
         HUB_IMAGE_TAG                   指定同步的源镜像
         NEW_IMAGE_TAG                   指定同步的目标镜像(需要设置: PRIVATE_REGISTRY_URLS)
+        IMAGES_CLEAN_FLAG               是否清理镜像, 默认 1 (1: 清理, 0: 不清理)
         PRIVATE_REGISTRY_URLS           指定私有镜像仓库地址, 多个地址用 '|' 分隔, 默认 ''
         PRIVATE_REGISTRY_USERNAME       指定私有镜像仓库的登陆用户名, 多个用 '|' 分割，需要遵循 PRIVATE_REGISTRY_URLS 变量配置顺序
         PRIVATE_REGISTRY_PASSWORD       指定私有镜像仓库的登陆密码, 多个用 '|' 分割，需要遵循 PRIVATE_REGISTRY_URLS 变量配置顺序
