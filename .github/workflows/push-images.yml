@@ -12,8 +12,12 @@ env:
   PRIVATE_REGISTRY_URLS: "${{ vars.PRIVATE_REGISTRY_URLS }}"
   PRIVATE_REGISTRY_USERNAME: "${{ secrets.PRIVATE_REGISTRY_USERNAME }}"
   PRIVATE_REGISTRY_PASSWORD:  "${{ secrets.PRIVATE_REGISTRY_PASSWORD }}"
-  DOCKER_USERNAME: "${{ secrets.DOCKER_USERNAME }}"
-  DOCKER_PASSWORD: "${{ secrets.DOCKER_PASSWORD }}"
+  SOURCE_REGISTRY_URLS: "${{ vars.SOURCE_REGISTRY_URLS }}"
+  SOURCE_REGISTRY_USERNAME: "${{ secrets.SOURCE_REGISTRY_USERNAME }}"
+  SOURCE_REGISTRY_PASSWORD: "${{ secrets.SOURCE_REGISTRY_PASSWORD }}"
+
+permissions:
+  contents: read
 
 jobs:
   push-to-registries:
@@ -35,11 +39,54 @@ jobs:
       run: sudo service docker restart
 
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Image Sync To Registry
-      id: read-images
+      id: sync-images
       run: |
-        bash docker-image-pusher.sh
+        set +e
+        bash docker-image-pusher.sh 2>&1 | tee /tmp/docker-image-pusher.log
+        status=${PIPESTATUS[0]}
+        echo "exit_code=${status}" >> "${GITHUB_OUTPUT}"
+        exit 0
 
+    - name: Write job summary
+      if: always()
+      run: |
+        sanitize_log() {
+          sed -E 's/\x1B\[[0-9;]*[A-Za-z]//g' /tmp/docker-image-pusher.log
+        }
 
+        {
+          echo "## Docker Image Sync Summary"
+          echo ""
+          summary_line="$(sanitize_log | grep '同步结果汇总:' | tail -n 1 || true)"
+          if [ -n "${summary_line}" ]; then
+            echo "- ${summary_line#*] }"
+          else
+            echo "- 未找到汇总信息，请查看日志"
+          fi
+
+          failure_lines="$(sanitize_log | grep '^.*  .* -> .*' || true)"
+          if [ -n "${failure_lines}" ]; then
+            echo ""
+            echo "### Failed Images"
+            printf '%s\n' "${failure_lines}" | while IFS= read -r line; do
+              echo "- ${line#*] }"
+            done
+          fi
+        } >> "${GITHUB_STEP_SUMMARY}"
+
+    - name: Upload sync log
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-image-pusher-log
+        path: /tmp/docker-image-pusher.log
+        if-no-files-found: ignore
+
+    - name: Fail workflow if sync failed
+      if: always() && steps.sync-images.outputs.exit_code != '0'
+      run: |
+        echo "Image sync failed, see step summary and uploaded log artifact."
+        exit 1
